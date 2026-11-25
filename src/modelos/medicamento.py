@@ -1,4 +1,8 @@
 class Medicamento:
+    """
+    Modela un medicamento del inventario hospitalario,
+    controlando su nombre, identificador y la cantidad disponible en stock.
+    """
     def __init__(self, id_medicamento, nombre, stock):
         if stock < 0:
             raise ValueError("El stock no puede ser negativo.")
@@ -17,6 +21,10 @@ class Medicamento:
         return self.__stock
 
     def actualizar_stock(self, cantidad):
+        """
+        Suma o resta unidades al stock actual.
+        lanza un error si la operacion deja el inventario por debajo de cero.
+        """
         nuevo_stock = self.__stock + cantidad
 
         if nuevo_stock < 0:
