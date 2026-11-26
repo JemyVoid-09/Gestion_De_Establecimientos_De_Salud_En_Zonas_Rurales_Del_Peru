@@ -20,7 +20,7 @@
 1. **Protección de Datos (Ley N.° 29733):** Prohibido almacenar DNI o diagnósticos en texto plano; aplicación obligatoria de algoritmos de cifrado SHA-256.
 2. **Hardware de Bajos Recursos:** Rendimiento optimizado para computadoras con memoria RAM $\le$ 4 GB.
 3. **Código Abierto y Control de Versiones:** Desarrollado en Python 3.x con repositorio público en GitHub ($\ge$ 10 commits descriptivos).
-4. **Almacenamiento Local:** Base de datos relacional SQLite (`gestion_esalud.db`) sin costo de licencias ni dependencia de conexión a Internet.
+4. **Almacenamiento Local:** Base de datos relacional SQLite (`gestion_essalud.db`) sin costo de licencias ni dependencia de conexión a Internet.
 
 ## Criterios de Éxito Medibles
 
