@@ -4,6 +4,7 @@ from src.modelos.usuario import Usuario
 class UsuarioRepositorio(BaseRepositorio):
 
     def registrar(self, usuario):
+        # Guardar los datos del usuario y su contraseña protegida mediante hash.
         self.conexion.execute(
             """
             INSERT INTO usuarios
@@ -22,6 +23,7 @@ class UsuarioRepositorio(BaseRepositorio):
         self.conexion.commit()
 
     def buscar_por_nombre(self, nombre):
+        # Buscar un usuario por su nombre sin distinguir mayúsculas y minúsculas.
         fila = self.conexion.execute(
             """
             SELECT *
@@ -31,12 +33,14 @@ class UsuarioRepositorio(BaseRepositorio):
             (nombre,)
         ).fetchone()
 
+        # Retornar None si no se encuentra el usuario.
         if fila is None:
             return None
 
         return fila
 
     def actualizar_estado(self, id_usuario, activo):
+        # Actualizar el estado de activación de la cuenta del usuario.
         cursor = self.conexion.execute(
             """
             UPDATE usuarios
@@ -47,4 +51,6 @@ class UsuarioRepositorio(BaseRepositorio):
         )
 
         self.conexion.commit()
+
+        # Indicar si se encontró y actualizó algún registro.
         return cursor.rowcount > 0
