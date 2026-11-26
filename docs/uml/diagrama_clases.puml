@@ -1,0 +1,241 @@
+@startuml GestionEsSalud
+allowmixing
+
+title GestionEsSalud — Diagrama de clases (feature/cuenta-demo-admin)
+left to right direction
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam linetype ortho
+hide empty members
+package "modelos" {
+  class Paciente {
+    - __id_paciente: str
+    - __nombre: str
+    - __dni_hash: str
+    - __historial: HistorialClinico
+    --
+    + __init__(id_paciente, nombre, dni=None, dni_hash=None)
+    + get_id_paciente() -> str
+    + get_nombre() -> str
+    + get_dni_hash() -> str
+    + get_historial() -> HistorialClinico
+    + agregar_nota_historial(nota) -> None
+  }
+  class CitaMedica {
+    - __id_cita: str
+    - __paciente: Paciente
+    - __fecha: str
+    - __medico: str
+    - __activa: bool
+    --
+    + __init__(id_cita, paciente, fecha, medico)
+    + get_id_cita() -> str
+    + get_paciente() -> Paciente
+    + get_fecha() -> str
+    + get_medico() -> str
+    + get_estado() -> bool
+    + cancelar_cita() -> None
+  }
+  class HistorialClinico {
+    - __id_historial: str
+    - __id_paciente: str
+    - __registros: list[dict]
+    --
+    + __init__(id_historial, id_paciente, registros=None)
+    + get_id_historial() -> str
+    + get_id_paciente() -> str
+    + get_registros() -> list[dict]
+    + agregar_registro(fecha, diagnostico, observaciones, id_usuario) -> dict
+    # _agregar_nota_compatibilidad(nota) -> dict
+  }
+  class Medicamento {
+    - __id_medicamento: str
+    - __nombre: str
+    - __stock: int
+    --
+    + __init__(id_medicamento, nombre, stock)
+    + get_id_medicamento() -> str
+    + get_nombre() -> str
+    + get_stock() -> int
+    + actualizar_stock(cantidad) -> None
+  }
+  class Rol {
+    - __id_rol: str
+    - __nombre: str
+    - __permisos: frozenset
+    --
+    + __init__(id_rol, nombre, permisos=None)
+    + get_id_rol() -> str
+    + get_nombre() -> str
+    + get_permisos() -> frozenset
+    + tiene_permiso(permiso) -> bool
+  }
+  class Usuario {
+    - __id_usuario: str
+    - __nombre: str
+    - __contraseña_hash: str
+    - __rol: Rol
+    - __activo: bool
+    --
+    + __init__(id_usuario, nombre, contraseña_hash, rol, activo=True)
+    + get_id_usuario() -> str
+    + get_nombre() -> str
+    + get_rol() -> Rol
+    + esta_activo() -> bool
+    + tiene_permiso(permiso) -> bool
+    + desactivar() -> None
+    + activar() -> None
+    # _obtener_contraseña_hash() -> str
+  }
+}
+package "repositorios" {
+  class BaseRepositorio {
+    + conexion: sqlite3.Connection
+    --
+    + __init__() -> None
+  }
+  class CitaRepositorio {
+    --
+    + registrar(cita) -> None
+    + obtener_todas() -> list[CitaMedica]
+    + cancelar(id_cita) -> bool
+  }
+  class HistorialRepositorio {
+    --
+    + obtener_o_crear(id_paciente) -> HistorialClinico
+    + registrar(id_paciente, fecha, diagnostico, observaciones, id_usuario) -> str
+    + obtener_por_paciente(id_paciente) -> HistorialClinico
+  }
+  class PacienteRepositorio {
+    --
+    + registrar(paciente) -> None
+    + obtener_todos() -> list[Paciente]
+    + buscar_por_nombre(criterio) -> list[Paciente]
+    + buscar_por_id(id_paciente) -> Paciente | None
+  }
+  class RolRepositorio {
+    + ROLES_PREDETERMINADOS: dict
+    --
+    + inicializar_roles() -> None
+    + buscar_por_id(id_rol) -> Rol | None
+    + buscar_por_nombre(nombre) -> Rol | None
+  }
+  class UsuarioRepositorio {
+    --
+    + registrar(usuario) -> None
+    + buscar_por_nombre(nombre) -> sqlite3.Row | None
+    + actualizar_estado(id_usuario, activo) -> bool
+  }
+}
+package "utils" {
+  component "database.py" as DatabaseModule <<Singleton>>
+
+  note right of DatabaseModule
+    Implementación Singleton a nivel de módulo.
+
+    - _conexion: sqlite3.Connection | None
+    + obtener_conexion() -> sqlite3.Connection
+    + inicializar_base_datos() -> None
+    + cerrar_conexion() -> None
+
+    Mantiene una única conexión activa
+    compartida por los repositorios.
+  end note
+}
+package "servicios" {
+  class AutenticacionServicio {
+    + usuarios: UsuarioRepositorio
+    + roles: RolRepositorio
+    --
+    + __init__() -> None
+    + crear_usuario(nombre, contrasena, nombre_rol) -> Usuario
+    + autenticar(nombre, contrasena) -> Usuario | None
+    + desactivar_usuario(id_usuario, administrador) -> None
+  }
+  class CitaServicio {
+    + repositorio: CitaRepositorio
+    + pacientes: PacienteRepositorio
+    --
+    + __init__() -> None
+    + programar_cita(id_cita, id_paciente, fecha, medico, usuario) -> CitaMedica
+    + obtener_citas(usuario) -> list[CitaMedica]
+    + cancelar_cita(id_cita, usuario) -> None
+  }
+  class HistorialServicio {
+    + repositorio: HistorialRepositorio
+    + pacientes: PacienteRepositorio
+    --
+    + __init__() -> None
+    + registrar_diagnostico(id_paciente, diagnostico, observaciones, usuario) -> str
+    + consultar_historial(id_paciente, usuario) -> HistorialClinico
+  }
+  class PacienteServicio {
+    + repositorio: PacienteRepositorio
+    --
+    + __init__() -> None
+    + registrar_paciente(id_paciente, nombre, dni, usuario) -> Paciente
+    + buscar_paciente_por_nombre(criterio, usuario) -> list[Paciente]
+    + obtener_pacientes(usuario) -> list[Paciente]
+    + generar_reporte_pacientes(usuario) -> list[str]
+  }
+}
+package "gui.ventanas" {
+  class VentanaLogin {
+    + ventana: tkinter.Tk
+    + al_ingresar: callable
+    + servicio: AutenticacionServicio
+    + usuario: tkinter.Entry
+    + contrasena: tkinter.Entry
+    --
+    + __init__(ventana, al_ingresar)
+    + verificar_campos() -> None
+  }
+  class VentanaPacientes {
+    + ventana: tkinter.Tk
+    + servicio: PacienteServicio
+    + usuario: Usuario
+    + id_paciente: tkinter.Entry
+    + nombre: tkinter.Entry
+    + dni: tkinter.Entry
+    + criterio: tkinter.Entry
+    + resultados: tkinter.Listbox
+    --
+    + __init__(ventana, usuario)
+    + registrar() -> None
+    + buscar() -> None
+    + mostrar_todos() -> None
+  }
+}
+CitaRepositorio --|> BaseRepositorio
+HistorialRepositorio --|> BaseRepositorio
+PacienteRepositorio --|> BaseRepositorio
+RolRepositorio --|> BaseRepositorio
+UsuarioRepositorio --|> BaseRepositorio
+Paciente "1" *-- "1" HistorialClinico : crea en __init__
+CitaMedica "0..*" --> "1" Paciente : paciente
+Usuario "0..*" --> "1" Rol : rol
+AutenticacionServicio --> UsuarioRepositorio : usuarios
+AutenticacionServicio --> RolRepositorio : roles
+AutenticacionServicio ..> Usuario
+CitaServicio --> CitaRepositorio : repositorio
+CitaServicio --> PacienteRepositorio : pacientes
+CitaServicio ..> CitaMedica
+CitaServicio ..> Usuario
+HistorialServicio --> HistorialRepositorio : repositorio
+HistorialServicio --> PacienteRepositorio : pacientes
+HistorialServicio ..> Usuario
+PacienteServicio --> PacienteRepositorio : repositorio
+PacienteServicio ..> Paciente
+PacienteServicio ..> Usuario
+VentanaLogin --> AutenticacionServicio : servicio
+VentanaPacientes --> PacienteServicio : servicio
+VentanaPacientes --> Usuario : usuario
+CitaRepositorio ..> CitaMedica
+CitaRepositorio ..> Paciente
+HistorialRepositorio ..> HistorialClinico
+PacienteRepositorio ..> Paciente
+RolRepositorio ..> Rol
+UsuarioRepositorio ..> Usuario
+BaseRepositorio ..> DatabaseModule : obtener_conexion()
+@enduml
