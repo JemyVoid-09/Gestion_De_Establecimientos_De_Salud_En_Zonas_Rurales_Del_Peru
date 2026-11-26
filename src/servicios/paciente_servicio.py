@@ -6,28 +6,40 @@ class PacienteServicio:
         # Inicializar el repositorio de pacientes.
         self.repositorio = PacienteRepositorio()
 
-    def registrar_paciente(self, id_paciente, nombre, dni, usuario):
+    def registrar_paciente(self, nombre, dni, usuario):
         # Verificar que el usuario tenga permiso para registrar pacientes.
         if not usuario.tiene_permiso("registrar_paciente"):
             raise PermissionError(
                 "No tiene permiso para registrar pacientes."
             )
-
-        # Validar que el ID y el nombre no estén vacíos.
-        if not id_paciente.strip():
-            raise ValueError("El ID no puede estar vacío.")
-
-        if not nombre.strip():
-            raise ValueError("El nombre no puede estar vacío.")
-
+            
+        # Eliminar espacios al inicio, al final y espacios repetidos.
+        nombre = " ".join(nombre.strip().split())
+        
+        # Comprobar que el nombre tenga al menos 3 letras.
+        cantidad_letras = sum(letra.isalpha() for letra in nombre)
+        
+        if cantidad_letras < 3:
+            raise ValueError("El nombre debe tener al menos 3 letras.")
+            
+        # Comprobar que solo contenga letras y espacios.
+        if not all(letra.isalpha() or letra == " " for letra in nombre):
+            raise ValueError("El nombre solo debe contener letras y espacios.")
+            
+        # Colocar la primera letra de cada palabra en mayúscula.
+        nombre = nombre.title()
+        
         # Comprobar que el DNI tenga exactamente ocho dígitos.
         if not dni.isdigit() or len(dni) != 8:
             raise ValueError("El DNI debe tener 8 dígitos.")
-
+            
+        # Generar automáticamente el ID del paciente.
+        id_paciente = self.repositorio.generar_siguiente_id()
+        
         # Crear y registrar el paciente en la base de datos.
         paciente = Paciente(id_paciente, nombre, dni)
         self.repositorio.registrar(paciente)
-
+        
         return paciente
 
     def buscar_paciente_por_nombre(self, criterio, usuario):

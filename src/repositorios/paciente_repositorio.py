@@ -3,6 +3,24 @@ from src.modelos.paciente import Paciente
 
 class PacienteRepositorio(BaseRepositorio):
 
+    def generar_siguiente_id(self):
+        # Obtener los identificadores de los pacientes registrados.
+        consulta = "SELECT id_paciente FROM pacientes"
+        filas = self.conexion.execute(consulta).fetchall()
+        
+        # Identificar el número más alto de los ID existentes.
+        numeros = [
+            int(fila["id_paciente"][1:])
+            for fila in filas
+            if fila["id_paciente"].startswith("P")
+            and fila["id_paciente"][1:].isdigit()
+        ]
+        
+        # Generar el siguiente ID con el formato P001.
+        siguiente_numero = max(numeros, default=0) + 1
+        
+        return f"P{siguiente_numero:03d}"
+
     def registrar(self, paciente):
         # Preparar la consulta para guardar los datos del paciente.
         consulta = """

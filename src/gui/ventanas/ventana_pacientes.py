@@ -23,24 +23,22 @@ class VentanaPacientes:
         formulario = tk.Frame(ventana)
         formulario.pack(pady=10)
 
-        tk.Label(formulario, text="ID:").grid(row=0, column=0)
-        self.id_paciente = tk.Entry(formulario)
-        self.id_paciente.grid(row=0, column=1, padx=5)
-
-        tk.Label(formulario, text="Nombre:").grid(row=1, column=0)
+        # Crear el campo para ingresar el nombre del paciente.
+        tk.Label(formulario, text="Nombre:").grid(row=0, column=0)
         self.nombre = tk.Entry(formulario)
-        self.nombre.grid(row=1, column=1, padx=5)
-
-        tk.Label(formulario, text="DNI:").grid(row=2, column=0)
+        self.nombre.grid(row=0, column=1, padx=5)
+        
+        # Crear el campo para ingresar el DNI del paciente.
+        tk.Label(formulario, text="DNI:").grid(row=1, column=0)
         self.dni = tk.Entry(formulario, show="*")
-        self.dni.grid(row=2, column=1, padx=5)
+        self.dni.grid(row=1, column=1, padx=5)
 
         # Crear el botón para registrar los datos ingresados.
         tk.Button(
             formulario,
             text="Registrar paciente",
             command=self.registrar
-        ).grid(row=3, column=0, columnspan=2, pady=10)
+        ).grid(row=2, column=0, columnspan=2, pady=10)
 
         # Crear el campo y el botón para buscar pacientes por nombre.
         busqueda = tk.Frame(ventana)
@@ -70,27 +68,30 @@ class VentanaPacientes:
 
     def registrar(self):
         try:
+            # Obtener los datos ingresados en los campos.
+            nombre = self.nombre.get()
+            dni = self.dni.get()
+            
             # Registrar al paciente mediante el servicio correspondiente.
-            self.servicio.registrar_paciente(
-                self.id_paciente.get(),
-                self.nombre.get(),
-                self.dni.get(),
+            paciente = self.servicio.registrar_paciente(
+                nombre,
+                dni,
                 self.usuario
             )
-
+            
             messagebox.showinfo(
                 "Registro",
-                "Paciente registrado correctamente."
+                f"Paciente registrado correctamente.\n"
+                f"ID asignado: {paciente.get_id_paciente()}"
             )
-
+            
             # Limpiar los campos después de completar el registro.
-            self.id_paciente.delete(0, tk.END)
             self.nombre.delete(0, tk.END)
             self.dni.delete(0, tk.END)
-
+            
             # Actualizar la lista de pacientes.
             self.mostrar_todos()
-
+            
         except Exception as error:
             messagebox.showerror("Error", str(error))
 
