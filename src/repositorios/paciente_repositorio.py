@@ -4,6 +4,7 @@ from src.modelos.paciente import Paciente
 class PacienteRepositorio(BaseRepositorio):
 
     def registrar(self, paciente):
+        # Preparar la consulta para guardar los datos del paciente.
         consulta = """
             INSERT INTO pacientes (id_paciente, nombre, dni_hash)
             VALUES (?, ?, ?)
@@ -21,9 +22,11 @@ class PacienteRepositorio(BaseRepositorio):
         self.conexion.commit()
 
     def obtener_todos(self):
+        # Obtener todos los pacientes ordenados alfabéticamente por nombre.
         consulta = "SELECT * FROM pacientes ORDER BY nombre"
         filas = self.conexion.execute(consulta).fetchall()
 
+        # Convertir los resultados en objetos Paciente.
         return [
             Paciente(
                 fila["id_paciente"],
@@ -34,6 +37,7 @@ class PacienteRepositorio(BaseRepositorio):
         ]
 
     def buscar_por_nombre(self, criterio):
+        # Buscar pacientes cuyo nombre coincida con el criterio ingresado.
         consulta = """
             SELECT * FROM pacientes
             WHERE LOWER(nombre) LIKE LOWER(?)
@@ -44,6 +48,7 @@ class PacienteRepositorio(BaseRepositorio):
             consulta, (f"%{criterio}%",)
         ).fetchall()
 
+        # Convertir los resultados encontrados en objetos Paciente.
         return [
             Paciente(
                 fila["id_paciente"],
@@ -54,6 +59,7 @@ class PacienteRepositorio(BaseRepositorio):
         ]
 
     def buscar_por_id(self, id_paciente):
+        # Consultar los datos de un paciente mediante su identificador.
         consulta = """
             SELECT * FROM pacientes
             WHERE id_paciente = ?
@@ -63,9 +69,11 @@ class PacienteRepositorio(BaseRepositorio):
             consulta, (id_paciente,)
         ).fetchone()
 
+        # Retornar None si no se encuentra el paciente.
         if fila is None:
             return None
 
+        # Reconstruir el registro encontrado como un objeto Paciente.
         return Paciente(
             fila["id_paciente"],
             fila["nombre"],
