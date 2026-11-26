@@ -3,6 +3,7 @@ from src.modelos.rol import Rol
 
 class RolRepositorio(BaseRepositorio):
 
+    # Definir los roles disponibles y los permisos asignados a cada uno.
     ROLES_PREDETERMINADOS = {
         "ADMIN": {
             "nombre": "Administrador",
@@ -36,6 +37,7 @@ class RolRepositorio(BaseRepositorio):
     }
 
     def inicializar_roles(self):
+        # Registrar los roles predeterminados si todavía no existen.
         for id_rol, datos in self.ROLES_PREDETERMINADOS.items():
 
             self.conexion.execute(
@@ -46,6 +48,7 @@ class RolRepositorio(BaseRepositorio):
                 (id_rol, datos["nombre"])
             )
 
+            # Registrar los permisos correspondientes a cada rol.
             for nombre_permiso in datos["permisos"]:
 
                 self.conexion.execute(
@@ -57,6 +60,7 @@ class RolRepositorio(BaseRepositorio):
                     (nombre_permiso, nombre_permiso)
                 )
 
+                # Establecer la relación entre el rol y sus permisos.
                 self.conexion.execute(
                     """
                     INSERT OR IGNORE INTO rol_permisos
@@ -69,6 +73,7 @@ class RolRepositorio(BaseRepositorio):
         self.conexion.commit()
 
     def buscar_por_id(self, id_rol):
+        # Buscar un rol mediante su identificador.
         fila = self.conexion.execute(
             """
             SELECT id_rol, nombre
@@ -81,6 +86,7 @@ class RolRepositorio(BaseRepositorio):
         if fila is None:
             return None
 
+        # Obtener los permisos asociados al rol encontrado.
         permisos = self.conexion.execute(
             """
             SELECT p.nombre
@@ -92,6 +98,7 @@ class RolRepositorio(BaseRepositorio):
             (id_rol,)
         ).fetchall()
 
+        # Construir el objeto Rol con sus respectivos permisos.
         return Rol(
             fila["id_rol"],
             fila["nombre"],
@@ -99,6 +106,7 @@ class RolRepositorio(BaseRepositorio):
         )
 
     def buscar_por_nombre(self, nombre):
+        # Buscar un rol por su nombre sin distinguir mayúsculas y minúsculas.
         fila = self.conexion.execute(
             """
             SELECT id_rol
@@ -111,4 +119,5 @@ class RolRepositorio(BaseRepositorio):
         if fila is None:
             return None
 
+        # Recuperar el rol completo mediante su identificador.
         return self.buscar_por_id(fila["id_rol"])
