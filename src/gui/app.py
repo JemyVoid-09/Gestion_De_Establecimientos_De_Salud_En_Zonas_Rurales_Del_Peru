@@ -17,12 +17,15 @@ def iniciar_app():
 
     ventana = tk.Tk()
 
+    # Mostrar la ventana de pacientes después de iniciar sesión.
     def mostrar_pacientes(usuario):
+        # Limpiar los componentes de la ventana anterior.
         for componente in ventana.winfo_children():
             componente.destroy()
 
         VentanaPacientes(ventana, usuario)
 
+    # Mostrar la ventana de inicio de sesión.
     VentanaLogin(ventana, mostrar_pacientes)
 
     ventana.mainloop()
