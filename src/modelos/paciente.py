@@ -26,6 +26,7 @@ class Paciente:
             id_paciente=id_paciente
         )
 
+    # Métodos de acceso a los atributos privados del paciente.
     def get_id_paciente(self):
         return self.__id_paciente
 
@@ -46,8 +47,8 @@ class Paciente:
         if not nota or not nota.strip():
             raise ValueError("La nota médica no puede estar vacía.")
 
-        #Método de compatibilidad para notas en memoria.
-        #Los registros persistentes se agregan desde HistorialServicio
+        # Permite agregar notas en memoria por compatibilidad.
+        # Los registros persistentes se agregan desde HistorialServicio
         self.__historial._agregar_nota_compatibilidad(
             nota.strip()
         )
